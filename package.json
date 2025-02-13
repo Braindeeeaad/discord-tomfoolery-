@@ -1,0 +1,27 @@
+{
+  "name": "discord-tomfoolery-",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Braindeeeaad/discord-tomfoolery-.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Braindeeeaad/discord-tomfoolery-/issues"
+  },
+  "homepage": "https://github.com/Braindeeeaad/discord-tomfoolery-#readme",
+  "keywords": [],
+  "description": "",
+  "dependencies": {
+    "discord.js": "^14.18.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "eslint": "^9.20.1"
+  }
+}

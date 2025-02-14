@@ -36,19 +36,25 @@ module.exports = {
             });
         }
         
+        //make and or set permission to course channel
         const channel = await makeTextChannel(interaction,courseCode,courseNumber); 
         /** add chanel permission handeling if u wish */ 
         await channel.permissionOverwrites.edit(userId, {
             ViewChannel: true, 
             SendMessages: true,
           });
-
+        
+        //make and or set permission to section thread 
         const thread = await makeTextThread(interaction,channel,courseSection); 
         // Set thread permissions for the user
         console.log("Thread data:",thread);
         await thread.members.add(userId);
-        await thread.send(channel.name+'-'+courseSection);
-		await interaction.reply({
+        //await thread.send(channel.name+'-'+courseSection);
+		//Make and or set permissions for superdoc thread 
+        const sdthread = await makeTextThread(interaction,channel,'superdoc-'+courseSection);
+        await sdthread.members.add(userId);
+        
+        await interaction.reply({
             content: "Succesfully logged into course: "+courseCode+"-"+courseNumber+"-"+courseSection, 
             flags: MessageFlags.Ephemeral,
         });

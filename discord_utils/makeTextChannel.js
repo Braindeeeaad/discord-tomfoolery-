@@ -1,8 +1,11 @@
 // Create a text channel with specific permissions
+
+const{ChannelType, PermissionsBitField} = require('discord.js'); 
+
 const makeTextChannel =  async(interaction, courseCode, courseNumber)=>{
     
     //If channel is already made then it applies user perms to channel and continues
-    const assumingChannel = interaction.guild.channels.cache.find(c => c.name === courseCode+'-'+courseNumber);
+    const assumingChannel = interaction.guild.channels.cache.find(c => c.name === courseCode.toLowerCase()+'-'+courseNumber.toLowerCase());
     if(assumingChannel){
         return assumingChannel; 
 
@@ -14,16 +17,24 @@ const makeTextChannel =  async(interaction, courseCode, courseNumber)=>{
             permissionOverwrites: [
                 {
                     id: interaction.guild.id, // Default @everyone role
-                    deny: ['ViewChannel'], // Hide the channel from everyone
+                    deny: [PermissionsBitField.Flags.ViewChannel], // Hide the channel from everyone
                 },
                 {
                     id: interaction.user.id, // Grant access to the command user
-                    allow: ['ViewChannel', 'SendMessages'],
+                    allow: [PermissionsBitField.Flags.ViewChannel,PermissionsBitField.Flags.SendMessages],
                 },
+                {
+                    id: interaction.guild.members.me.id, // Bot
+                    allow: [
+                        PermissionsBitField.Flags.ViewChannel,
+                        PermissionsBitField.Flags.ManageChannels,
+                        //PermissionsBitField.Flags.ManageRoles,
+                    ],
+                }
             ],
         }); 
         //figure out a way to only reply to the user who used the command
-        await interaction.reply(`Created channel: ${channel.name}`);
+        //await interaction.reply(`Created channel: ${channel.name}`);
         return channel;
 
     } catch(error){

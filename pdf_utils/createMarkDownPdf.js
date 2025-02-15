@@ -20,8 +20,7 @@ const createMarkDownPDF = async(textContent) => {
 
     await browser.close();
 
-    return pdfBuffer; // Return 
+    return pdfBuffer.toJSON().data; // return proper 8-int array  
 };
 
 module.exports = {createMarkDownPDF};
-

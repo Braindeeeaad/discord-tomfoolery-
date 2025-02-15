@@ -6,7 +6,7 @@ const configGoogleDoc = async () => {
 
     try {
         const auth = new googledocs.auth.GoogleAuth({
-            keyFilename: '../google_client_secret.json',
+            keyFilename: '../client_secret_google_doc.json',
             // Scopes can be specified either as an array or as a single, space-delimited string.
             scopes: ['https://www.googleapis.com/auth/documents']
         });

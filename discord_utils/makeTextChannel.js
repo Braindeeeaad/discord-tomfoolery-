@@ -2,14 +2,20 @@
 
 const{ChannelType, PermissionsBitField} = require('discord.js'); 
 
+/**
+ * 
+ * @param {*} interaction 
+ * @param {*} courseCode 
+ * @param {*} courseNumber 
+ * @returns {channel:channel,hasExisted}//hasExisted returns true if the channel had already been made before
+ */
 const makeTextChannel =  async(interaction, courseCode, courseNumber)=>{
     
-    //If channel is already made then it applies user perms to channel and continues
+    //If channel is already made then early return
     const assumingChannel = interaction.guild.channels.cache.find(c => c.name === courseCode.toLowerCase()+'-'+courseNumber.toLowerCase());
-    if(assumingChannel){
-        return assumingChannel; 
-
-    }
+    if(assumingChannel)
+        return {channel:assumingChannel,hasExisted:true}; 
+    
     try{
         const channel = await interaction.guild.channels.create({
             name: courseCode+'-'+courseNumber,
@@ -35,7 +41,7 @@ const makeTextChannel =  async(interaction, courseCode, courseNumber)=>{
         }); 
         //figure out a way to only reply to the user who used the command
         //await interaction.reply(`Created channel: ${channel.name}`);
-        return channel;
+        return {channel:channel,hasExisted:false};
 
     } catch(error){
         console.log("Error creating channel: ",error);

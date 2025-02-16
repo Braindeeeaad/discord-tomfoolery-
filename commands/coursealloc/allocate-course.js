@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, MessageFlags , PermissionsBitField} = require('discord.js');
 const {makeTextChannel} = require('../../discord_utils/makeTextChannel'); 
 const {makeTextThread} = require('../../discord_utils/makeTextThread');
+const {db_add_course} = require('../../aws_utils/aws-config.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -37,23 +38,36 @@ module.exports = {
         }
         
         //make and or set permission to course channel
-        const channel = await makeTextChannel(interaction,courseCode,courseNumber); 
-        /** add chanel permission handeling if u wish */ 
+        const channel_res = await makeTextChannel(interaction,courseCode,courseNumber); 
+        const channel = channel_res.channel;
         await channel.permissionOverwrites.edit(userId, {
             ViewChannel: true, 
             SendMessages: true,
           });
         
         //make and or set permission to section thread 
-        const thread = await makeTextThread(interaction,channel,courseSection); 
-        // Set thread permissions for the user
-        console.log("Thread data:",thread);
+        const thread_res = await makeTextThread(interaction,channel,courseSection); 
+        const thread = thread_res.thread;
         await thread.members.add(userId);
+
         //await thread.send(channel.name+'-'+courseSection);
-		//Make and or set permissions for superdoc thread 
-        const sdthread = await makeTextThread(interaction,channel,'superdoc-'+courseSection);
+        const sdthread_res = await makeTextThread(interaction,channel,'superdoc-'+courseSection);
+        const sdthread = sdthread_res.thread;
         await sdthread.members.add(userId);
+     
         
+        //upload course info to dynamodb if this is a new course
+        const courseId = courseCode+'-'+courseNumber+'-'+courseSection;
+        if(!channel_res.hasExisted&&!thread_res.hasExisted){
+            await db_add_course(courseId,{
+                courseid:courseId, 
+                units:[], 
+                channelid:channel.id, 
+                threadid:thread.id
+            });
+        }
+        
+
         await interaction.reply({
             content: "Succesfully logged into course: "+courseCode+"-"+courseNumber+"-"+courseSection, 
             flags: MessageFlags.Ephemeral,

@@ -4,14 +4,14 @@ const dotenv = require('dotenv');
 dotenv.config(); 
 AWS.config.update({
     region: 'us-east-1',
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    accessKeyId: process.env.AWS_ACCESS_KEY,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
   })
 
 const dynamodb = new AWS.DynamoDB.DocumentClient()  
 const courseTable = 'discord-allocated-courses'  
 
-const db_add_course = async(tableName,courseId, item = {courseid: courseId})=>{
+const db_add_course = async(courseId, item = {courseid: courseId, units : []})=>{
     const params = {
         TableName: courseTable, 
         Item: item
@@ -21,16 +21,16 @@ const db_add_course = async(tableName,courseId, item = {courseid: courseId})=>{
         await dynamodb.put(params).promise(); 
         return params.Item; 
     } catch(error){
-        console.error("Error saving item:",error);
+        console.log("Error saving item:",error);
         throw error 
     }
 
 }
 
-const db_fetch_course = async(tableName, courseId)=>{
+const db_fetch_course = async(courseId)=>{
     const params = {
-        TableName: tableName, 
-        Key:{courseid,courseId}
+        TableName: courseTable, 
+        Key:{courseid:courseId}
     };
 
     try {

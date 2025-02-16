@@ -1,18 +1,25 @@
-
+/**
+ * 
+ * @param {
+ * } interaction 
+ * @param {*} channel 
+ * @param {string} courseSection 
+ * @returns {thread:thread, hasExisted} //hasExisted returns true if the thread had already been made before
+ */
 const makeTextThread = async (interaction, channel, courseSection) => {
 
-    //If there is a channel
+    //If there ins't a channel
     if (!channel) {
         console.log("makeTextThread: undefined channel");
         return;
     }
     try {
         const activeThreads = await channel.threads.fetchActive();
-        console.log("Active Threads in Channel: ", activeThreads.threads);
+        //console.log("Active Threads in Channel: ", activeThreads.threads);
         const assumingThread = channel.threads.cache.find(x => x.name === courseSection);// 
 
         if (assumingThread)
-            return assumingThread;
+            return {thread:assumingThread,hasExisted:true};
 
         //else make thread  
         const thread = await channel.threads.create({
@@ -22,7 +29,7 @@ const makeTextThread = async (interaction, channel, courseSection) => {
             reason: 'Discussion for the course',
         });
         //await interaction.reply(`Thread created: ${thread.name}`);
-        return thread;
+        return {thread:thread,hasExisted:false};
     } catch (error) {
         console.log("makeTextThread Error:",error);
 

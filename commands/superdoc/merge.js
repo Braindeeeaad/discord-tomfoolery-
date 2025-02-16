@@ -1,10 +1,7 @@
-/*
-const pdf = await interaction.options.getAttachment('pdf'); 
-        console.log('Pdf data: ', pdf);
-*/
 
 const { SlashCommandBuilder, MessageFlags , PermissionsBitField} = require('discord.js');
 const {downloadPdf} = require('../../pdf_utils/downloadPdf'); 
+const {combineWithSuperDoc} = require('../../gemini_utils/combineSuperDoc.js');
 
 module.exports = {
     data: new SlashCommandBuilder()

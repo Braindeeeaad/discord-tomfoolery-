@@ -1,3 +1,4 @@
+const {writeSuperDocMessage} = require('./writeSuperdocMessage');
 /**
  * 
  * @param {
@@ -6,7 +7,7 @@
  * @param {string} courseSection 
  * @returns {thread:thread, hasExisted} //hasExisted returns true if the thread had already been made before
  */
-const makeTextThread = async (interaction, channel, courseSection) => {
+const makeTextThread = async (channel, courseSection) => {
 
     //If there ins't a channel
     if (!channel) {
@@ -14,7 +15,7 @@ const makeTextThread = async (interaction, channel, courseSection) => {
         return;
     }
     try {
-        const activeThreads = await channel.threads.fetchActive();
+        //const activeThreads = await channel.threads.fetchActive();
         //console.log("Active Threads in Channel: ", activeThreads.threads);
         const assumingThread = channel.threads.cache.find(x => x.name === courseSection);// 
 
@@ -28,6 +29,8 @@ const makeTextThread = async (interaction, channel, courseSection) => {
             type: 11, // 11 = Public thread
             reason: 'Discussion for the course',
         });
+
+        
         //await interaction.reply(`Thread created: ${thread.name}`);
         return {thread:thread,hasExisted:false};
     } catch (error) {
@@ -37,5 +40,7 @@ const makeTextThread = async (interaction, channel, courseSection) => {
     return undefined;
     //If the thread already exists, return it      
 }
+
+
 
 module.exports = { makeTextThread }; 

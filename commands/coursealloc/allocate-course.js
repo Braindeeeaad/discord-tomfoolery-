@@ -2,6 +2,7 @@ const { SlashCommandBuilder, MessageFlags , PermissionsBitField} = require('disc
 const {makeTextChannel} = require('../../discord_utils/makeTextChannel'); 
 const {makeTextThread} = require('../../discord_utils/makeTextThread');
 const {db_add_course} = require('../../aws_utils/aws-config.js');
+const {writeSuperDocMessage} = require('../../discord_utils/writeSuperdocMessage.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -46,13 +47,16 @@ module.exports = {
           });
         
         //make and or set permission to section thread 
-        const thread_res = await makeTextThread(interaction,channel,courseSection); 
+        const thread_res = await makeTextThread(channel,courseSection); 
         const thread = thread_res.thread;
         await thread.members.add(userId);
 
         //await thread.send(channel.name+'-'+courseSection);
-        const sdthread_res = await makeTextThread(interaction,channel,'superdoc-'+courseSection);
+        const sdthread_res = await makeTextThread(channel,'superdoc-'+courseSection);
         const sdthread = sdthread_res.thread;
+
+        //writes super-doc message to superdoc thread
+        await writeSuperDocMessage(sdthread);
         await sdthread.members.add(userId);
      
         
@@ -63,7 +67,8 @@ module.exports = {
                 courseid:courseId, 
                 units:[], 
                 channelid:channel.id, 
-                threadid:thread.id
+                threadid:thread.id, 
+                sdthreadid:sdthread.id
             });
         }
         

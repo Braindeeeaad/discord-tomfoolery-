@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, MessageFlags , PermissionsBitField} = require('discord.js');
 const {createGoogleDoc} =require('../../googledocs_utils/createGoogleDoc.js');
 const {db_fetch_course,db_add_course} = require('../../aws_utils/aws-config.js');
+const {writeSuperDocMessage} = require('../../discord_utils/writeSuperdocMessage.js');
 module.exports = {
     data: new SlashCommandBuilder()
 		.setName('create-unit')
@@ -45,15 +46,18 @@ module.exports = {
         }
         //makes google doc of unit 
         const doc = await createGoogleDoc(unitName); 
+       // console.log("Doc json:",doc);
         //alters course_info to append doc information into units list 
-        course_info.units.push({label:unitName,url:doc.url});
-        
+        course_info.units.push({label:unitName,url:doc.documentId});
+        //
+        await writeSuperDocMessage(thread,{lable:unitName,url:`https://docs.google.com/document/d/${doc.documentId}/edit`});
         //pushes course info back to db 
         await db_add_course(courseId,course_info);
 
-        console.log("interaction info: ",interaction.channel);
+      //  console.log("interaction info: ",interaction.channel);
+
         await interaction.reply({
-            content: "I'm cooking", 
+            content: "Uploaded doc!", 
             flags: MessageFlags.Ephemeral,
         });
 

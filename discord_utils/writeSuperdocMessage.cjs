@@ -1,4 +1,4 @@
-const {findSuperdocMessage} = require('./findSuperdocMessage.js');
+const {findSuperdocMessage} = require('./findSuperdocMessage.cjs');
 
 //change write superdoc message from using interactions to reply to using the channel, 
 //gay function

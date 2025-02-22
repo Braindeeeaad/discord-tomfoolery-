@@ -1,4 +1,4 @@
-const {configGoogleDoc} = require('./configGoogleDoc.js');
+const {configGoogleDoc} = require('./configGoogleDoc.cjs');
 
 
 const createGoogleDoc = async (name) => {

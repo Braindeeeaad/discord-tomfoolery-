@@ -1,8 +1,8 @@
 const { SlashCommandBuilder, MessageFlags , PermissionsBitField} = require('discord.js');
-const {makeTextChannel} = require('../../discord_utils/makeTextChannel'); 
-const {makeTextThread} = require('../../discord_utils/makeTextThread');
-const {db_add_course} = require('../../aws_utils/aws-config.js');
-const {writeSuperDocMessage} = require('../../discord_utils/writeSuperdocMessage.js');
+const {makeTextChannel} = require('../../discord_utils/makeTextChannel.cjs'); 
+const {makeTextThread} = require('../../discord_utils/makeTextThread.cjs');
+const {db_add_course} = require('../../aws_utils/aws-config.cjs');
+const {writeSuperDocMessage} = require('../../discord_utils/writeSuperdocMessage.cjs');
 
 module.exports = {
     data: new SlashCommandBuilder()

@@ -1,7 +1,8 @@
 const { SlashCommandBuilder, MessageFlags , PermissionsBitField} = require('discord.js');
-const {createGoogleDoc} =require('../../googledocs_utils/createGoogleDoc.js');
-const {db_fetch_course,db_add_course} = require('../../aws_utils/aws-config.js');
-const {writeSuperDocMessage} = require('../../discord_utils/writeSuperdocMessage.js');
+const {createGoogleDoc} =require('../../googledocs_utils/createGoogleDoc.cjs');
+const {createDiscordPoll} = require('../../discord_utils/createDiscordPoll.cjs')
+const {db_fetch_course,db_add_course} = require('../../aws_utils/aws-config.cjs');
+const {writeSuperDocMessage} = require('../../discord_utils/writeSuperdocMessage.cjs');
 module.exports = {
     data: new SlashCommandBuilder()
 		.setName('create-unit')
@@ -26,6 +27,13 @@ module.exports = {
             });    
             return;
         }
+        //Defer reply so slash command doesn't automatically return an error
+        await interaction.deferReply({ 
+            flags: MessageFlags.Ephemeral,
+        });
+
+        
+        
 
         //gets course-id using interaction info  
         const courseSection = thread.name.replace("superdoc-",""); 
@@ -49,17 +57,18 @@ module.exports = {
        // console.log("Doc json:",doc);
         //alters course_info to append doc information into units list 
         course_info.units.push({label:unitName,url:doc.documentId});
-        //
+        
         await writeSuperDocMessage(thread,{lable:unitName,url:`https://docs.google.com/document/d/${doc.documentId}/edit`});
         //pushes course info back to db 
         await db_add_course(courseId,course_info);
 
       //  console.log("interaction info: ",interaction.channel);
 
-        await interaction.reply({
+        await interaction.editReply({
             content: "Uploaded doc!", 
             flags: MessageFlags.Ephemeral,
-        });
+        }); 
+        
 
 	},
 }

@@ -1,10 +1,10 @@
-const getGoogleDoc = require('./getGoogleDoc.js'); 
+const {getGoogleDoc} = require('./getGoogleDoc.cjs'); 
 
 
 const readGoogleDoc = async (documentId) => {
     try {
         //retriving google-doc by id 
-        const doc = getGoogleDoc(documentId);
+        const doc = await getGoogleDoc(documentId);
         // Extract text content from the document's body
         const docContent = doc.body.content;
         let text = '';

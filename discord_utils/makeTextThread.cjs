@@ -1,4 +1,4 @@
-const {writeSuperDocMessage} = require('./writeSuperdocMessage');
+const {writeSuperDocMessage} = require('./writeSuperdocMessage.cjs');
 /**
  * 
  * @param {

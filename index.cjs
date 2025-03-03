@@ -78,7 +78,7 @@ client.on(Events.MessageCreate, async (message) =>{
 				const pdfobj  = attachments.first();
 				reply = await command.merge(unitName,pdfobj,thread);
 				await message.delete();
-				console.log('Attachments: '+pdfurl); 
+				//console.log('Attachments: '+pdfurl); 
 
 			break;
 		}

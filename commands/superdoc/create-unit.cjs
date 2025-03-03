@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, MessageFlags , PermissionsBitField} = require('discord.js');
 const {createGoogleDoc} =require('../../googledocs_utils/createGoogleDoc.cjs');
-const {createDiscordPoll} = require('../../discord_utils/createDiscordPoll.cjs')
+const {makeDiscordPoll} = require('../../discord_utils/makeDiscordPoll.cjs')
 const {db_fetch_course,db_add_course} = require('../../aws_utils/aws-config.cjs');
 const {writeSuperDocMessage} = require('../../discord_utils/writeSuperdocMessage.cjs');
 module.exports = {
@@ -10,7 +10,39 @@ module.exports = {
         .addStringOption(option =>
             option.setName('name')
                 .setDescription("add the name of the unit you want to create")
-        ),    
+        ),
+        async create_unit(unitName, thread, channel){
+            //gets course-id using interaction info  
+            const courseSection = thread.name.replace("superdoc-",""); 
+            const courseId = channel.name+'-'+courseSection
+            console.log("Fetching course:",courseId);
+            
+            //fetched course data from dyanmodb 
+            let course_info = await db_fetch_course(courseId); 
+    
+    
+            //checks if unit with same name already exist 
+            if(course_info.units.some(item=>item.lable === unitName)){   
+                return{
+                    content: "Another unit already has this name", 
+                    flags: MessageFlags.Ephemeral,
+                };
+            }
+            //makes google doc of unit 
+            const doc = await createGoogleDoc(unitName); 
+           // console.log("Doc json:",doc);
+            //alters course_info to append doc information into units list 
+            course_info.units.push({label:unitName,url:doc.documentId});
+            
+            await writeSuperDocMessage(thread,{lable:unitName,url:`https://docs.google.com/document/d/${doc.documentId}/edit`});
+            //pushes course info back to db 
+            await db_add_course(courseId,course_info);
+
+            return{
+                content: "Uploaded doc!", 
+                flags: MessageFlags.Ephemeral,
+            };
+       },    
 	async execute(interaction) {
 
         //recieve interaction info 
@@ -32,44 +64,14 @@ module.exports = {
             flags: MessageFlags.Ephemeral,
         });
 
-        
-        
-
-        //gets course-id using interaction info  
-        const courseSection = thread.name.replace("superdoc-",""); 
-        const courseId = channel.name+'-'+courseSection
-        console.log("Fetching course:",courseId);
-        
-        //fetched course data from dyanmodb 
-        let course_info = await db_fetch_course(courseId); 
-
-
-        //checks if unit with same name already exist 
-        if(course_info.units.some(item=>item.lable === unitName)){
-            await interaction.reply({
-                content: "Another unit already has this name", 
-                flags: MessageFlags.Ephemeral,
-            });    
-            return;
-        }
-        //makes google doc of unit 
-        const doc = await createGoogleDoc(unitName); 
-       // console.log("Doc json:",doc);
-        //alters course_info to append doc information into units list 
-        course_info.units.push({label:unitName,url:doc.documentId});
-        
-        await writeSuperDocMessage(thread,{lable:unitName,url:`https://docs.google.com/document/d/${doc.documentId}/edit`});
-        //pushes course info back to db 
-        await db_add_course(courseId,course_info);
-
-      //  console.log("interaction info: ",interaction.channel);
-
-        await interaction.editReply({
-            content: "Uploaded doc!", 
-            flags: MessageFlags.Ephemeral,
-        }); 
+        //refractored code
+        const reply =  await this.create_unit(unitName, thread, channel);
         
 
-	},
+      
+        await interaction.editReply(reply); 
+        
+
+	}
 }
 

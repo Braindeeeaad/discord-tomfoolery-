@@ -21,13 +21,7 @@ const getPdfText = async (fileUrl) => {
     text += pageText + '\n';
   }
  
-  /*
-  const pageTextPromises = [];
-  for (let pageNo = 1; pageNo <= maxPages; pageNo += 1) {
-    pageTextPromises.push(pdf.getPageText(pdf, pageNo));
-  }
-  const pageTexts = await Promise.all(pageTextPromises);
-  */
+  
   return text;
 
 

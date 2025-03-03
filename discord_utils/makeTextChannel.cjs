@@ -22,7 +22,7 @@ const makeTextChannel =  async(interaction, courseCode, courseNumber)=>{
             type: 0, // 0 = Text channel
             permissionOverwrites: [
                 {
-                    id: interaction.guild.id, // Default @everyone role
+                    id: interaction.guild.id, // Default everyone role
                     deny: [PermissionsBitField.Flags.ViewChannel], // Hide the channel from everyone
                 },
                 {
@@ -39,7 +39,6 @@ const makeTextChannel =  async(interaction, courseCode, courseNumber)=>{
                 }
             ],
         }); 
-        //figure out a way to only reply to the user who used the command
         //await interaction.reply(`Created channel: ${channel.name}`);
         return {channel:channel,hasExisted:false};
 

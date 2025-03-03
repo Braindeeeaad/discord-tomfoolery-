@@ -3,6 +3,7 @@ const {makeTextChannel} = require('../../discord_utils/makeTextChannel.cjs');
 const {makeTextThread} = require('../../discord_utils/makeTextThread.cjs');
 const {db_add_course} = require('../../aws_utils/aws-config.cjs');
 const {writeSuperDocMessage} = require('../../discord_utils/writeSuperdocMessage.cjs');
+const {makeDiscordWebhook} = require('../../discord_utils/makeDiscordWebhook.cjs');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -18,7 +19,7 @@ module.exports = {
         ) 
         .addStringOption(option =>
             option.setName('course-section')
-                .setDescription("Enter the section number of your course i.e 030 123 etc")
+                .setDescription("Enter the name of your professor")
         ),    
 	async execute(interaction) {
 
@@ -46,6 +47,9 @@ module.exports = {
             SendMessages: true,
           });
         
+        //makes a webhook for channel  
+        const webhookurl = await makeDiscordWebhook(channel.id,'hook-'+courseNumber+'-'+courseSection);
+
         //make and or set permission to section thread 
         const thread_res = await makeTextThread(channel,courseSection); 
         const thread = thread_res.thread;
@@ -58,17 +62,19 @@ module.exports = {
         //writes super-doc message to superdoc thread
         await writeSuperDocMessage(sdthread);
         await sdthread.members.add(userId);
-     
+
+    
         
         //upload course info to dynamodb if this is a new course
         const courseId = courseCode+'-'+courseNumber+'-'+courseSection;
         if(!channel_res.hasExisted&&!thread_res.hasExisted){
             await db_add_course(courseId,{
-                courseid:courseId, 
+                courseid:courseId.toLowerCase(), 
                 units:[], 
                 channelid:channel.id, 
                 threadid:thread.id, 
-                sdthreadid:sdthread.id
+                sdthreadid:sdthread.id, 
+                webhook: webhookurl
             });
         }
         

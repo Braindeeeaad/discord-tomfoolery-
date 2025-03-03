@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 
-const createDiscordPoll = async(channelId, question, answers, duration = 24, allowMultiselect = false) => {
+const makeDiscordPoll = async(channelId, question, answers, duration = 24, allowMultiselect = false) => {
     const url = `https://discord.com/api/v10/channels/${channelId}/messages`;
 
     const payload = {
@@ -19,7 +19,7 @@ const createDiscordPoll = async(channelId, question, answers, duration = 24, all
     try {
         const response = await axios.post(url, payload, {
             headers: {
-                Authorization: `Bot ${env.process.DISCORD_TOKEN}`,
+                Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -29,4 +29,4 @@ const createDiscordPoll = async(channelId, question, answers, duration = 24, all
     }
 }
 
-module.exports = {createDiscordPoll};
+module.exports = {makeDiscordPoll};

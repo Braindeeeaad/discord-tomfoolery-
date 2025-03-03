@@ -5,7 +5,12 @@ const dotenv = require('dotenv');
 dotenv.config();
 const token = process.env.DISCORD_TOKEN
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [
+	GatewayIntentBits.Guilds, 
+	GatewayIntentBits.GuildWebhooks, 
+	GatewayIntentBits.GuildMessages, 
+	GatewayIntentBits.MessageContent
+] });
 
 client.commands = new Collection();
 
@@ -37,6 +42,58 @@ client.once(Events.ClientReady, readyClient => {
 
 // Log in to Discord with your client's token
 client.login(token);
+
+
+//Discord doesn't have a webhook event,so I gotta do this MacGyver type shi 
+
+//Listen to webhooks
+client.on(Events.MessageCreate, async (message) =>{
+	//console.log('Message:', message.content);
+	if(!message.webhookId) return;
+
+	
+	const thread = message.channel; 
+	const attachments = message.attachments;
+	//assume webhook string is: create-unit,unitName  
+	const commandstr = message.content.split(',');
+	const commandName = commandstr[0];
+	const unitName = commandstr[1];
+	console.log('Webhook Command:',message.content);
+	//get command object
+	
+	const command = client.commands.get(commandName);
+	if(!command){
+		console.log('Un-recognized commadn');
+		return; 
+	}
+	let reply = undefined; 
+	try{
+		switch(commandName){
+			case 'create-unit':
+				const channel = thread.parent;
+				await message.delete();
+				reply = await command.create_unit(unitName,thread,channel); 
+			break; 
+			case 'merge': 
+				const pdfobj  = attachments.first();
+				reply = await command.merge(unitName,pdfobj,thread);
+				await message.delete();
+				console.log('Attachments: '+pdfurl); 
+
+			break;
+		}
+		await thread.send({
+			content: reply.content
+		}) 
+		 
+	} catch(error) {
+		console.error(error);
+
+	}
+	
+	//Gotta make mock interaction object depending on command and send 
+
+});
 
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;

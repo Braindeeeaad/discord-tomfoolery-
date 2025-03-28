@@ -70,7 +70,9 @@
 
     "pdfjs-dist": "^4.10.38",
 
-    "puppeteer": "^24.2.1"
+    "puppeteer": "^24.2.1",
+
+    "redis": "^4.7.0"
 
   },
 

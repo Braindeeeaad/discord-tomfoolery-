@@ -1,8 +1,15 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, MessageFlags  } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+
 const dotenv = require('dotenv'); 
 dotenv.config();
+
+
+const Redis = require("redis");
+const redisClient = Redis.createClient(); // Connects to local Redis server
+redisClient.connect();
 const token = process.env.DISCORD_TOKEN
 
 const client = new Client({ intents: [
@@ -94,6 +101,121 @@ client.on(Events.MessageCreate, async (message) =>{
 	//Gotta make mock interaction object depending on command and send 
 
 });
+
+//deals with yes/no poll clicks
+client.on(Events.InteractionCreate, async (interaction) => {
+	if (!interaction.isButton() || !interaction.customId.startsWith("poll_")) return;
+	//await redisClient.connect();
+
+	const messageId = interaction.message.id;
+	const userId = interaction.user.id;
+	const optionIndex = interaction.customId.split("_")[1];
+	const embedtitle = interaction.message.embeds[0].title; 
+  
+	// Check if user already voted, if so presists whether they are the creator or not
+	const hasVoted = await redisClient.hExists(`poll:${messageId}:votes`, userId);
+	let creatorBool = false
+	if (hasVoted) {
+		const userVoteData = await redisClient.hGet(
+			`poll:${messageId}:votes`,
+			userId
+		  );
+		const { isCreator  } = JSON.parse(userVoteData); 
+		creatorBool = isCreator;				
+	}
+	 
+	
+	// Register vote
+	//await redisClient.hSet(`poll:${messageId}:votes`, userId, optionIndex);
+	await redisClient.hSet(
+		`poll:${messageId}:votes`, 
+		userId, 
+		JSON.stringify({ optionIndex: optionIndex, isCreator: creatorBool })
+	  );
+  
+	// Update embed 
+	/*
+	const votes = await redisClient.hGetAll(`poll:${messageId}:votes`);
+	const yesVotes = Object.values(votes).filter(v => v === "0").length;
+	const noVotes = Object.values(votes).filter(v => v === "1").length;
+	*/ 
+	const votes = await redisClient.hGetAll(`poll:${messageId}:votes`);
+	let yesVotes = 0, noVotes = 0;
+	for (const userId in votes) {
+		const { optionIndex } = JSON.parse(votes[userId]);
+		if (Number(optionIndex) === 0) yesVotes++;
+		else if (Number(optionIndex)) noVotes++;
+	}
+
+	const updatedEmbed = new EmbedBuilder()
+	  .setTitle(embedtitle)
+	  .setDescription(`✅ Yes: ${yesVotes}\n❌ No: ${noVotes}`);
+  
+	await interaction.message.edit({ embeds: [updatedEmbed] });
+	await interaction.reply({ content: "Vote Complete!", ephemeral: true });
+
+  });
+
+  //deals with end poll clicks
+client.on(Events.InteractionCreate, async (interaction) => {
+	if (!interaction.isButton() || !interaction.customId.startsWith("end_poll")) return;
+	
+
+	const messageId = interaction.message.id;
+	const userId = interaction.user.id;
+	const optionIndex = interaction.customId.split("_")[1];
+	const channel = interaction.channel;
+
+	const userVoteData = await redisClient.hGet(
+		`poll:${messageId}:votes`,
+		userId
+	  );
+	const { isCreator  } = JSON.parse(userVoteData);
+	console.log("userVoteData:",userVoteData);
+	if (!isCreator) {
+		return interaction.reply({
+			content: "❌ Only the poll creator can end this!",
+			ephemeral: true,
+		});
+  	}
+
+	console.log(interaction.message.embeds);
+	const unitName = interaction.message.embeds[0].title.split(":")[1];
+	console.log("Channel members:",channel.members.thread);
+	const numMembers = channel.members.thread.memberCount;
+  
+	// Update embed (example)
+	const votes = await redisClient.hGetAll(`poll:${messageId}:votes`);
+	let yesVotes = 0, noVotes = 0;
+	for (const userId in votes) {
+		const { optionIndex } = JSON.parse(votes[userId]);
+		if (optionIndex === 0) yesVotes++;
+		else if (optionIndex === 1) noVotes++;
+	}
+	
+	//const yesVotes = Object.values(votes).filter(v => v === "0").length;
+	//const noVotes = Object.values(votes).filter(v => v === "1").length;
+
+	const command = client.commands.get('create-unit');
+	const propYV = yesVotes/numMembers; 
+	console.log("numMembers",numMembers); 
+	console.log("yesVotes",yesVotes); 
+	console.log("yesVotes/numMembers",propYV);
+	const rest = ((yesVotes/numMembers)>=0.2 || yesVotes>=10) ? command.create_unit(unitName,channel,channel.parent) : undefined; 
+
+	console.log("Poll Result:",rest);
+	let updatedEmbed = new EmbedBuilder()
+	  .setTitle("Poll Ended")
+	  .setDescription(`✅ Yes: ${yesVotes}\n❌ No: ${noVotes}\n ${unitName} created!`);
+	if(!rest){
+		updatedEmbed = new EmbedBuilder()
+		.setTitle("Poll Ended")
+		.setDescription(`✅ Yes: ${yesVotes}\n❌ No: ${noVotes}\n Insufficent votes to create ${unitName}`);
+	}
+  
+	await redisClient.del(`poll:${messageId}:votes`);
+	await interaction.message.delete();
+	await interaction.reply({ embeds: [updatedEmbed] });  });
 
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;

@@ -201,6 +201,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
 	console.log("numMembers",numMembers); 
 	console.log("yesVotes",yesVotes); 
 	console.log("yesVotes/numMembers",propYV);
+	//N
+	//const rest = command.create_unit(unitName,channel,channel.parent);
 	const rest = ((yesVotes/numMembers)>=0.2 || yesVotes>=10) ? command.create_unit(unitName,channel,channel.parent) : undefined; 
 
 	console.log("Poll Result:",rest);
